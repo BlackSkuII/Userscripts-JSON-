@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      2.1
+// @version      2.2
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -43,6 +43,9 @@
                 font-size: 1.15rem !important;
                 display: flex;
             }
+            .head-dropdown .dropdown-menu, .dropdown-menu{
+            box-shadow:0 .125rem .25rem #ffffff99;
+            }
 
 
         /* ===== Desktop / Computer only ===== */
@@ -67,7 +70,7 @@
 
     function duplicateBookmarks() {
         const original = document.querySelector('.dropdown-item[href="/user/bookmarks"]');
-        const target = document.querySelector('.dropdown.user-notify');
+        const target = document.querySelector('.dropdown.user-menu.head-dropdown');
 
         if (!original || !target) return;
 
