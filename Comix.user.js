@@ -2,11 +2,11 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      2.0
+// @version      2.1
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
-// @updateURL    
-// @downloadURL  
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
 // @grant        none
 // ==/UserScript==
 
