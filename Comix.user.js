@@ -23,7 +23,6 @@
         style.textContent = `
 
             /* ===== Shared (applies to everything) ===== */
-
             :root{
                 --bs-body-bg: #000 !important;
                 --bs-body-tertiary-bg: #000 !important;
