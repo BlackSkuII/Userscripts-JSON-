@@ -1,12 +1,9 @@
 // ==UserScript==
-// @name         GitHub Raw Button
-// @namespace    https://github.com/BlackSkuII
-// @author       BlackSkuII
-// @version      1.1
+// @name         GitHub Raw Button (Mobile Fix v2)
+// @namespace    http://tampermonkey.net/
+// @version      1.2
 // @description  Adds a Raw button on GitHub file view (better anchor)
 // @match        https://github.com/*/*/blob/*
-// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Raw.user.js
-// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Raw.user.js
 // @grant        none
 // ==/UserScript==
 
@@ -15,12 +12,11 @@
 
     function addRawButton() {
         // Check if screen width is typical for phones (portrait)
-        // 768px is the standard CSS breakpoint for mobile devices
         const isMobile = window.innerWidth <= 768;
         const existingBtn = document.getElementById('tm-raw-button');
 
         if (!isMobile) {
-            // If not on mobile, ensure button is removed (e.g. rotating back to landscape)
+            // If not on mobile, ensure button is removed
             if (existingBtn) existingBtn.remove();
             return;
         }
@@ -48,7 +44,7 @@
         btn.style.background = 'var(--button-default-bgColor-rest,var(--color-btn-bg))';
         btn.style.color = 'var(--color-fg-default)';
 
-        // Click → open raw file
+        // Click → open raw file in same window
         btn.onclick = function () {
             let url = window.location.href;
 
@@ -56,7 +52,7 @@
                 .replace('github.com', 'raw.githubusercontent.com')
                 .replace('/blob/', '/');
 
-            window.open(url, '_blank');
+            window.location.href = url;
         };
 
         // Insert BEFORE the target box (left side)
