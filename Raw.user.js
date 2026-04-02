@@ -1,9 +1,12 @@
 // ==UserScript==
-// @name         GitHub Raw Button (Mobile Fix v2)
-// @namespace    http://tampermonkey.net/
-// @version      1.2
+// @name         GitHub Raw Button
+// @namespace    https://github.com/BlackSkuII
+// @author       BlackSkuII
+// @version      1.3
 // @description  Adds a Raw button on GitHub file view (better anchor)
 // @match        https://github.com/*/*/blob/*
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Raw.user.js
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Raw.user.js
 // @grant        none
 // ==/UserScript==
 
