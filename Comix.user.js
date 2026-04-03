@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      2.2
+// @version      2.2.5
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -30,7 +30,7 @@
            }
            :root, [data-bs-theme=default] {
                 --bs-primary: #440aaa !important;
-                --bs-primary-rgb: 102,232,250;
+                --bs-primary-rgb: 68, 10, 170 !important;
                 --bs-body-secondary-bg: #000 !important;
 
            }
