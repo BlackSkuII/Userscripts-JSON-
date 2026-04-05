@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      2.2.5
+// @version      2.3
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -87,10 +87,26 @@
         // Insert above target
         target.parentNode.insertBefore(clone, target);
     }
+    function duplicateNavigation() {
+        const originalNav = document.querySelector('nav.navigation.d-none.d-md-block');
+        const targetLi = document.querySelector('li.head');
+
+        if (!originalNav || !targetLi) return;
+
+        // Prevent duplicating multiple times
+        if (document.getElementById('cloned-navigation')) return;
+
+        const clone = originalNav.cloneNode(true);
+        clone.id = 'cloned-navigation';
+
+        // Insert above target <li>
+        targetLi.parentNode.insertBefore(clone, targetLi);
+    }
 
     function runAll() {
         injectCSS();
         duplicateBookmarks();
+        duplicateNavigation(); 
     }
 
     // Run once on load
@@ -113,7 +129,8 @@
         }
 
         if (e.code === 'Space') {
-            const nextButton = document.querySelector('.nav.next');
+           // const nextButton = document.querySelector('.nav.next');
+            const nextButton = document.querySelector('.fa-sharp.fa-solid.fa-chevron-right');
 
             if (nextButton) {
                 e.preventDefault(); // prevent page scroll
