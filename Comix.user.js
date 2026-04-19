@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      3.0
+// @version      3.5
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -176,6 +176,13 @@
 
     // Initial check on load
     checkUrlAndToggle();
+
+    // --- GLOBAL BRIDGE ---
+    // Expose function to set zoom from other parts of the script
+    window.setComixZoomLevel = function(level) {
+        currentWidth = level;
+        applyZoom();
+    };
 
 })();
 
@@ -389,6 +396,20 @@
             if (increaseBtn) {
                 e.preventDefault();
                 increaseBtn.click();
+            }
+        }
+
+        // Reset to 100% (0 key)
+        if (e.key === '0') {
+            if (window.setComixZoomLevel) {
+                window.setComixZoomLevel(100);
+            }
+        }
+
+        // Set to 30% (. key)
+        if (e.key === '.') {
+            if (window.setComixZoomLevel) {
+                window.setComixZoomLevel(30);
             }
         }
     });
