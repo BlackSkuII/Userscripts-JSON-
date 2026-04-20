@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      3.5
+// @version      3.6
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -232,6 +232,9 @@
             #cloned-bookmarks:hover {
             color:var(--bs-primary);
             }
+            .comic-info .poster {
+                width: 18rem !important;
+            }       
         }
 
         /* ===== Mobile / Phone only ===== */
@@ -399,17 +402,17 @@
             }
         }
 
-        // Reset to 100% (0 key)
+        // Reset to 80% (0 key)
         if (e.key === '0') {
             if (window.setComixZoomLevel) {
-                window.setComixZoomLevel(100);
+                window.setComixZoomLevel(80);
             }
         }
 
         // Set to 30% (. key)
         if (e.key === '.') {
             if (window.setComixZoomLevel) {
-                window.setComixZoomLevel(30);
+                window.setComixZoomLevel(35);
             }
         }
     });
