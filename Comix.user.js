@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      3.6
+// @version      3.7
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -234,7 +234,12 @@
             }
             .comic-info .poster {
                 width: 18rem !important;
-            }       
+            }
+            .comic.sm .item .detail .title {
+                -webkit-line-clamp: 6 !important;
+                height: auto !important;
+                max-height: 6rem !important;
+            }
         }
 
         /* ===== Mobile / Phone only ===== */
@@ -343,7 +348,7 @@
         subtree: true
     });
     
-    document.addEventListener('keydown', (e) => {
+      document.addEventListener('keydown', (e) => {
         // Ignore if user is typing in an input/textarea
         const tag = e.target.tagName.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) {
@@ -351,6 +356,22 @@
         }
 
         const onBookmarks = window.location.href.includes('/user/bookmarks');
+
+        // --- Helper: Check if on the last chapter ---
+        let isLastChapter = false;
+        const chapterInfo = document.querySelector('.number.me-2');
+        if (chapterInfo) {
+            // Regex to find numbers in format "81/81"
+            const match = chapterInfo.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+            if (match) {
+                const current = parseInt(match[1]);
+                const total = parseInt(match[2]);
+                if (current === total) {
+                    isLastChapter = true;
+                }
+            }
+        }
+        // ------------------------------------------
 
         // ===== Bookmarks Page Navigation =====
         if (onBookmarks) {
@@ -361,7 +382,7 @@
                     e.preventDefault();
                     nextBtn.click();
                 }
-                return; // Stop execution here to prevent default Space behavior below
+                return; 
             }
             
             // Left Arrow -> Previous Page
@@ -375,11 +396,29 @@
             }
         }
 
-        // ===== Global / Other Pages =====
+        // ===== Reader Page Navigation =====
+        
+        // Next Chapter (Space)
         if (e.code === 'Space') {
+            // Stop if we are on the last chapter
+            if (isLastChapter) return;
+
             const nextButton = document.querySelector('.fa-sharp.fa-solid.fa-chevron-right');
             if (nextButton) {
                 e.preventDefault(); // prevent page scroll
+                nextButton.click();
+            }
+        }
+
+        // Next Chapter (Right Arrow)
+        // Added this since you mentioned Right Arrow causing the loop
+        if (e.code === 'ArrowRight') {
+            // Stop if we are on the last chapter
+            if (isLastChapter) return;
+
+            const nextButton = document.querySelector('.fa-sharp.fa-solid.fa-chevron-right');
+            if (nextButton) {
+                e.preventDefault();
                 nextButton.click();
             }
         }
