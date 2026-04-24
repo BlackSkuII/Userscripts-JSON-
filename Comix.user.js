@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      3.7
+// @version      3.8
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -208,7 +208,6 @@
                 --bs-primary: #440aaa !important;
                 --bs-primary-rgb: 68, 10, 170 !important;
                 --bs-body-secondary-bg: #000 !important;
-
            }
            .comic.sm .item .poster {
                 width: 10.4rem !important;
@@ -222,6 +221,8 @@
             .head-dropdown .dropdown-menu, .dropdown-menu{
             box-shadow:0 .125rem .25rem #ffffff99;
             }
+
+           
 
 
         /* ===== Desktop / Computer only ===== */
@@ -244,7 +245,18 @@
 
         /* ===== Mobile / Phone only ===== */
         @media (hover: none) and (pointer: coarse) {
-
+             /* ===== Hide Specific Nav Buttons ===== */
+            .fa-sharp.fa-solid.fa-bars,
+            .fa-sharp.fa-solid.fa-square-sliders,
+            .fa-sharp.fa-solid.fa-bell {
+                display: none !important;
+            }
+            /* Also hide the parent wrapper (button/link) so there's no empty clickable gaps */
+            :has(> .fa-sharp.fa-solid.fa-bars),
+            :has(> .fa-sharp.fa-solid.fa-square-sliders),
+            :has(> .fa-sharp.fa-solid.fa-bell) {
+                display: none !important;
+            }
                 
         }
         `;
