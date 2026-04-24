@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      3.8
+// @version      3.8.1
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -248,13 +248,15 @@
              /* ===== Hide Specific Nav Buttons ===== */
             .fa-sharp.fa-solid.fa-bars,
             .fa-sharp.fa-solid.fa-square-sliders,
-            .fa-sharp.fa-solid.fa-bell {
+            .fa-sharp.fa-solid.fa-bell,
+            .fa-sharp.fa-solid>fa-triangle-exclamation {
                 display: none !important;
             }
             /* Also hide the parent wrapper (button/link) so there's no empty clickable gaps */
             :has(> .fa-sharp.fa-solid.fa-bars),
             :has(> .fa-sharp.fa-solid.fa-square-sliders),
-            :has(> .fa-sharp.fa-solid.fa-bell) {
+            :has(> .fa-sharp.fa-solid.fa-bell),
+            :has(> .fa-sharp.fa-solid>fa-triangle-exclamation) {
                 display: none !important;
             }
                 
