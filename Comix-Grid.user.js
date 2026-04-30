@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Comix.to Grid
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/BlackSkuII
 // @version      1.0
 // @description  Bookmark grid with stable SPA handling
 // @author       You
