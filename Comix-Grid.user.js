@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Comix.to Grid
 // @namespace    https://github.com/BlackSkuII
-// @version      1.0
+// @version      1.1
 // @description  Bookmark grid with stable SPA handling
 // @author       You
 // @match        *://comix.to/*
@@ -448,6 +448,20 @@
     }
 
     // ═══════════════════════════════════════════════════
+    // TOGGLE VISIBILITY BASED ON URL
+    // ═══════════════════════════════════════════════════
+    function updateToggleVisibility() {
+        const toggleBtn = document.getElementById('bm-tog');
+        if (!toggleBtn) return;
+
+        if (location.href.includes('https://comix.to/user/bookmarks')) {
+            toggleBtn.style.display = 'block';
+        } else {
+            toggleBtn.style.display = 'none';
+        }
+    }
+
+    // ═══════════════════════════════════════════════════
     // CLEANUP
     // ═══════════════════════════════════════════════════
     function cleanup() {
@@ -463,12 +477,20 @@
         wrapper = null;
         origUl = null;
         lastSignature = '';
+
+        updateToggleVisibility();
     }
 
     // ═══════════════════════════════════════════════════
     // REBUILD
     // ═══════════════════════════════════════════════════
     function rebuild() {
+
+        // Only run if on bookmarks page
+        if (!location.href.includes('https://comix.to/user/bookmarks')) {
+            cleanup();
+            return;
+        }
 
         const ul = findBookmarkList();
 
@@ -530,7 +552,6 @@
         }
 
         const grid = wrapper.querySelector('#bm-grid');
-
         if (!grid) return;
 
         // Replace contents only
@@ -549,9 +570,7 @@
 
         // Intercept clicks → delegate to original SPA anchor
         grid.onclick = function (e) {
-
             const a = e.target.closest('.bc a[href]');
-
             if (!a) return;
 
             e.preventDefault();
@@ -585,6 +604,8 @@
                 if (!location.href.includes('/user/bookmarks')) {
                     cleanup();
                 }
+
+                updateToggleVisibility();
             }
 
             rebuild();
