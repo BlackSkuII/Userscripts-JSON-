@@ -2,7 +2,7 @@
 // @name         Comix.to Custom CSS
 // @namespace    https://github.com/BlackSkuII
 // @author       BlackSkuII
-// @version      3.8.2
+// @version      3.8.3
 // @description  Inject custom CSS into comix.to
 // @match        https://comix.to/*
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix.user.js
@@ -277,6 +277,9 @@
 
         const clone = original.cloneNode(true);
         clone.id = 'cloned-bookmarks';
+
+        // Force it to always go to page 1
+        clone.href = '/user/bookmarks?page=1';
 
         // Remove span inside clone
         const span = clone.querySelector('span');
