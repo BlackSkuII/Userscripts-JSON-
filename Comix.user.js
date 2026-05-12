@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Comix.to Custom CSS ++
 // @namespace    http://tampermonkey.net/
-// @version      5.0
+// @version      5.1
 // @description  Override :root CSS variables and inject custom CSS rules
 // @author       You
 // @match        https://comix.to/*
@@ -64,6 +64,7 @@
 
     injectCSS();
 })();
+
 /*
     // =========================
     // CUSTOM PAGE ZOOM
@@ -243,6 +244,7 @@
     };
 })();
 */
+
     // =========================
     // CUSTOM HISTORY BUTTON
     // =========================
@@ -287,6 +289,7 @@
         subtree: true
     });
 })();
+
      // =========================
     // CUSTOM BOOKMARK NAV
     // =========================
@@ -658,3 +661,37 @@
 
     reorderCardMeta();
 })();
+
+    // =========================
+    // CUSTOM CHAPTER NAV
+    // =========================
+
+(function () {
+    'use strict';
+
+    const readerUrlRegex = /https?:\/\/comix\.to\/title\/.+\/.+-chapter-.+/;
+
+    document.addEventListener('keydown', (e) => {
+        if (!readerUrlRegex.test(location.href)) return;
+
+        const tag = document.activeElement.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || document.activeElement.isContentEditable) return;
+
+        if (e.key === 'ArrowRight' || e.code === 'Space') {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            e.preventDefault();
+            const nextBtn = document.querySelector('.rpage-chapnav__btn.rpage-chapnav__btn--next');
+            if (nextBtn) nextBtn.click();
+        }
+
+        if (e.key === 'ArrowLeft') {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            e.preventDefault();
+            const prevBtn = document.querySelector('.rpage-chapnav__btn:not(.rpage-chapnav__btn--next)');
+            if (prevBtn) prevBtn.click();
+        }
+    });
+})();
+
