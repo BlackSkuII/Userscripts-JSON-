@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Comix.to Custom CSS ++
 // @namespace    http://tampermonkey.net/
-// @version      5.1
+// @version      5.2
 // @description  Override :root CSS variables and inject custom CSS rules
 // @author       You
 // @match        https://comix.to/*
@@ -26,18 +26,20 @@
         /* Override CSS variables */
         :root {
             --bg: #000 !important;
-            --bg-rgb: 0 0 0  !important;
+            --bg-rgb: 0 0 0 !important;
             --surface: #000 !important;
-            --surface-rgb: 0 0 0  !important;
+            --surface-rgb: 0 0 0 !important;
             --bg-2: #000 !important;
-            --bg-2-rgb: 0 0 0  !important;
+            --bg-2-rgb: 0 0 0 !important;
             --surface-2: #000 !important;
-            --surface-2-rgb: 0 0 0  !important;
+            --surface-2-rgb: 0 0 0 !important;
         }
+
         .rpage-page{
             /* aspect-ratio: 1920 / 1080; */
             /* --rpage-page-w: 940px; */
         }
+
         /* ===== Desktop / Computer only ===== */
         @media (hover: hover) and (pointer: fine) {
             .ugrid {
@@ -46,7 +48,8 @@
         }
 
         /* ===== Mobile / Phone only ===== */
-         @media (max-width: 768px) {
+        @media (max-width: 768px),
+       (hover: none) and (pointer: coarse) {
             .settings,
             .browse,
             .notifbell,
@@ -54,6 +57,7 @@
                 display: none !important;
             }
         }
+    
     `;
 
     function injectCSS() {
@@ -62,7 +66,9 @@
         document.documentElement.appendChild(style);
     }
 
-    injectCSS();
+    // Wait until the entire page is fully loaded
+    window.addEventListener('load', injectCSS);
+
 })();
 
 /*
