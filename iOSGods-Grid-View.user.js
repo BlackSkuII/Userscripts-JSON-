@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         iOSGods Grid View
 // @namespace    iosgods-grid
-// @version      1.5
-// @description  Replaces the iOSGods store list with a card grid layout + infinite scroll
-// @match        https://app.iosgods.com/store/games/new-and-updates*
+// @version      2.0
+// @description  Replaces the iOSGods store list with a card grid layout + infinite scroll (SPA aware)
+// @match        https://app.iosgods.com/*
 // @grant        GM_addStyle
 // @run-at       document-idle
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/iOSGods-Grid-View.user.js
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/iOSGods-Grid-View.user.js
 // ==/UserScript==
 
 (function () {
@@ -33,8 +35,15 @@
 
     #ig-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 18px;
+    }
+
+    /* Mobile layout: 2 columns, 10 rows */
+    @media (max-width: 768px) {
+      #ig-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .ig-card {
@@ -60,6 +69,16 @@
     .ig-card:nth-child(8)  { animation-delay: .28s; }
     .ig-card:nth-child(9)  { animation-delay: .32s; }
     .ig-card:nth-child(10) { animation-delay: .36s; }
+    .ig-card:nth-child(11) { animation-delay: .40s; }
+    .ig-card:nth-child(12) { animation-delay: .44s; }
+    .ig-card:nth-child(13) { animation-delay: .48s; }
+    .ig-card:nth-child(14) { animation-delay: .52s; }
+    .ig-card:nth-child(15) { animation-delay: .56s; }
+    .ig-card:nth-child(16) { animation-delay: .60s; }
+    .ig-card:nth-child(17) { animation-delay: .64s; }
+    .ig-card:nth-child(18) { animation-delay: .68s; }
+    .ig-card:nth-child(19) { animation-delay: .72s; }
+    .ig-card:nth-child(20) { animation-delay: .76s; }
 
     .ig-card:hover {
       transform: translateY(-5px);
@@ -68,8 +87,10 @@
     }
 
     .ig-card img {
-      width: 140px;
-      height: 140px;
+      width: 100%;
+      max-width: 140px;
+      height: auto;
+      aspect-ratio: 1 / 1;
       border-radius: 18px;
       object-fit: cover;
       margin-bottom: 12px;
@@ -189,7 +210,6 @@
   }
 
   function buildCard(item) {
-    // ── FIX: use <div> instead of <a> to avoid Framework7 interception ──
     const card = document.createElement('div');
     card.className = 'ig-card';
     card.title = stripHTML(item.description);
@@ -204,7 +224,6 @@
       <div class="ig-date">${timeAgo(item.updated_at)}</div>
     `;
 
-    // ── FIX: hard navigate on click, bypassing Framework7 router ──
     card.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -217,11 +236,7 @@
 
   function init() {
     const pageContent = document.querySelector('.page-content.infinite-scroll-content');
-    if (!pageContent) {
-      console.warn('[iOSGods Grid] .page-content not found, retrying…');
-      setTimeout(init, 800);
-      return;
-    }
+    if (!pageContent) return; // SPA hasn't loaded the container yet
 
     pageContent.style.overflowY = 'auto';
     pageContent.style.webkitOverflowScrolling = 'touch';
@@ -241,7 +256,7 @@
     const grid     = wrap.querySelector('#ig-grid');
     const sentinel = wrap.querySelector('#ig-scroll-sentinel');
     const endMsg   = wrap.querySelector('#ig-end-msg');
-    let page       = 1;
+    let page       = 0; // Start at page 0
     let loading    = false;
     let exhausted  = false;
 
@@ -283,9 +298,32 @@
       }
     }
 
-    pageContent.addEventListener('scroll', onScroll, { passive: true });
-    loadPage(1);
+    // Prevent duplicate listeners if init is called multiple times on the same element
+    if (!pageContent.dataset.igListenerAdded) {
+      pageContent.addEventListener('scroll', onScroll, { passive: true });
+      pageContent.dataset.igListenerAdded = 'true';
+    }
+
+    loadPage(page); // Initial load (page 0)
   }
 
-  setTimeout(init, 700);
+  // --- SPA Routing Logic ---
+  function checkRoute() {
+    const titleEl = document.querySelector('.title-large-text');
+    const isTargetPage = titleEl && titleEl.textContent.trim() === 'New Games & Updates';
+    const wrapExists = document.getElementById('ig-grid-wrap');
+
+    if (isTargetPage && !wrapExists) {
+      init();
+    } else if (!isTargetPage && wrapExists) {
+      // Navigated away, remove our grid so it doesn't leak into other pages
+      wrapExists.remove();
+    }
+  }
+
+  // Check periodically for SPA route changes
+  setInterval(checkRoute, 1000);
+  // Also run once on load
+  checkRoute();
+
 })();
