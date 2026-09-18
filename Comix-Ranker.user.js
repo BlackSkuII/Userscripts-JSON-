@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         Comix Translator Medal Ranker
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Scans all groups on the page, ranks them based on a priority list, and awards Gold, Silver, and Bronze to the top 3.
 // @author       You
 // @match        *://*.comix.to/*
 // @grant        none
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix-Ranker.user.js
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Comix-Ranker.user.js
 // @run-at       document-idle
 // ==/UserScript==
 
