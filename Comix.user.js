@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Comix.to Custom CSS ++
 // @namespace    http://tampermonkey.net/
-// @version      5.5
+// @version      5.6
 // @description  Override :root CSS variables and inject custom CSS rules
 // @author       You
 // @match        https://comix.to/*
@@ -55,7 +55,7 @@
         /* ===== Desktop / Computer only ===== */
         @media (hover: hover) and (pointer: fine) {
             .ugrid {
-                grid-template-columns: repeat(auto-fill,minmax(213px,1fr));
+                grid-template-columns: repeat(5, minmax(0, 1fr));
             }
             .rpage-header__title{
                 font-size: 1.25rem !important;
@@ -447,4 +447,53 @@
     // Initial build
     buildPagination();
 
+})();
+
+
+    // =========================
+    // CUSTOM CHAPTER PROGRESS COLORS
+    // =========================
+
+(function () {
+    'use strict';
+
+    function colorChapterProgress() {
+        document.querySelectorAll('.card__ch').forEach(span => {
+            const text = span.textContent.trim();
+            const parts = text.split('/');
+
+            if (parts.length === 2) {
+                const viewedStr = parts[0].trim();
+                const totalStr = parts[1].trim();
+
+                if (viewedStr === '—') {
+                    span.style.color = 'purple';
+                } else {
+                    const viewed = parseInt(viewedStr, 10);
+                    const total = parseInt(totalStr, 10);
+
+                    if (!isNaN(viewed) && !isNaN(total)) {
+                        if (viewed < total) {
+                            span.style.color = 'red';
+                        } else if (viewed === total) {
+                            span.style.color = 'green';
+                        } else if (viewed > total) {
+                            span.style.color = 'gold';
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const observer = new MutationObserver(() => {
+        colorChapterProgress();
+    });
+
+    observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
+
+    colorChapterProgress();
 })();
