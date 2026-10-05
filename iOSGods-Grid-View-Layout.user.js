@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         iOSGods App – Grid View + VIP Toggle
 // @namespace    https://app.iosgods.com/
-// @version      1.3.0
+// @version      1.4.0
 // @description  Shows app lists as a grid (4 columns on laptops, 2 on phones) and hides/shows VIP apps with the "T" key (hidden by default). Works with the SPA navigation and infinite scrolling.
 // @match        *://app.iosgods.com/*
 // @run-at       document-start
@@ -19,6 +19,8 @@
     // Button position (top-right). 'below-navbar' sits just under the site's top bar so it never
     // covers the site's own top-right icons; 'corner' puts it in the very top-right corner.
     const BUTTON_POSITION       = 'below-navbar'; // 'below-navbar' | 'corner'
+    const ICON_SIZE_LAPTOP      = 140;     // app icon size in px on laptops/desktops (was 72)(104)
+    const ICON_SIZE_PHONE       = 110;      // app icon size in px on phones (was 72)(84)
     const PHONE_MAX_WIDTH       = 767;     // <= this width -> 2 columns, otherwise 4 (site uses 768px too)
     const MAX_EMPTY_AUTOLOADS   = 4;       // stop auto-loading after N loads in a row that added no visible app
     const STORAGE_KEY           = 'igx-hide-vip';
@@ -88,12 +90,25 @@ ${LIST} > li {
     background: rgba(127,127,127,.06);
 }
 ${LIST} > li .app-icon {
-    width: 72px !important;
+    width: ${ICON_SIZE_LAPTOP}px !important;
+    max-width: 100% !important;          /* never wider than the card */
     min-width: 0 !important;
     height: auto !important;
-    margin: 0 0 8px 0 !important;
+    margin: 2px 0 10px 0 !important;
     padding: 0 !important;
     flex: none;
+    border-radius: 22.5% !important;     /* iOS-style rounded square at any size */
+}
+${LIST} > li .app-icon img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1;
+    border-radius: 22.5% !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
+}
+@media (max-width: ${PHONE_MAX_WIDTH}px) {
+    ${LIST} > li .app-icon { width: ${ICON_SIZE_PHONE}px !important; margin-bottom: 8px !important; }
 }
 ${LIST} > li .app-meta {
     display: flex !important;
