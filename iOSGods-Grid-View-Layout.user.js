@@ -20,7 +20,7 @@
     // covers the site's own top-right icons; 'corner' puts it in the very top-right corner.
     const BUTTON_POSITION       = 'below-navbar'; // 'below-navbar' | 'corner'
     const ICON_SIZE_LAPTOP      = 140;     // app icon size in px on laptops/desktops (was 72)(104)
-    const ICON_SIZE_PHONE       = 110;      // app icon size in px on phones (was 72)(84)
+    const ICON_SIZE_PHONE       = 140;      // app icon size in px on phones (was 72)(84)
     const PHONE_MAX_WIDTH       = 767;     // <= this width -> 2 columns, otherwise 4 (site uses 768px too)
     const MAX_EMPTY_AUTOLOADS   = 4;       // stop auto-loading after N loads in a row that added no visible app
     const STORAGE_KEY           = 'igx-hide-vip';
