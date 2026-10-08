@@ -2,6 +2,7 @@
 // @name         iOSGods App – Grid View + VIP Toggle
 // @namespace    https://app.iosgods.com/
 // @version      1.4.0
+// @author       BlackSkuII + Arena.ai
 // @description  Shows app lists as a grid (4 columns on laptops, 2 on phones) and hides/shows VIP apps with the "T" key (hidden by default). Works with the SPA navigation and infinite scrolling.
 // @match        *://app.iosgods.com/*
 // @run-at       document-start
