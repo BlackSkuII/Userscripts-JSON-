@@ -8,10 +8,10 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=iosgods.com
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Direct-IPA-LiveContainer.user.js
 // @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/Direct-IPA-LiveContainer.user.js
-
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
+
 (function() {
     'use strict';
 
