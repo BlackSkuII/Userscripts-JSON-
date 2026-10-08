@@ -6,8 +6,8 @@
 // @author       Your Name
 // @match        https://www.youtube.com/*
 // @match        https://www.youtube-nocookie.com/*
-// @updateURL    
-// @downloadURL  
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/YouTube-Speed-Control.user.js
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/YouTube-Speed-Control.user.js
 // @grant        GM.getValue
 // @grant        GM.setValue
 // ==/UserScript==
