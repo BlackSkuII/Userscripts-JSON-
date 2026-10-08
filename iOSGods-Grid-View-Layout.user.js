@@ -5,6 +5,8 @@
 // @author       BlackSkuII + Arena.ai
 // @description  Shows app lists as a grid (4 columns on laptops, 2 on phones) and hides/shows VIP apps with the "T" key (hidden by default). Works with the SPA navigation and infinite scrolling.
 // @match        *://app.iosgods.com/*
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/iOSGods-Grid-View-Layout.user.js
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/iOSGods-Grid-View-Layout.user.js
 // @run-at       document-start
 // @grant        none
 // ==/UserScript==
