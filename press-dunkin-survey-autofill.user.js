@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Dunkin' Survey: Auto-Fill Code via Keypresses
 // @namespace    https://github.com/BlackSkuII/Userscripts-JSON-
-// @version      2.0
-// @description  Reads the ?code= parameter from the URL, clicks the survey code container, types the code key-by-key, then clicks the Begin Survey button. Works on iOS Safari with Tampermonkey or Stay.
+// @version      3.0.0
+// @description  Reads the ?code= parameter from the URL, clicks the survey code container, types the code key-by-key, then clicks the Begin Survey button. Only runs when the URL contains the Dunkin survey code pattern. Works on iOS Safari with Tampermonkey or Stay.
 // @author       Me + Agent
 // @match        https://dunkinrunsonyou.com/*
 // @match        https://survey3.medallia.com/*
@@ -16,6 +16,7 @@
     'use strict';
 
     // Configuration
+    const TARGET_URL_PREFIX = 'https://dunkinrunsonyou.com/?dunkin-dd-live/&code=';
     const CONTAINER_CLASS_1 = 'textField_textfieldContainer';
     const CONTAINER_CLASS_2 = 'layout_answer';
     const INPUT_ID = 'spl_q_inrest_rcpt_code_txt';
@@ -24,6 +25,15 @@
     const POST_TYPE_DELAY_MS = 250;  // wait after typing before clicking Begin
     const MAX_WAIT_MS = 60000;       // stop polling after 60 seconds
     const POLL_MS = 300;             // check every 300 ms
+
+    // ------------------------------------------------------------------
+    // Guard: only run when the URL contains the Dunkin survey code pattern.
+    // This is a runtime check (not in @match metadata) so more site
+    // functions can be added later under the same broad @match.
+    // ------------------------------------------------------------------
+    function isTargetUrl() {
+        return window.location.href.includes(TARGET_URL_PREFIX);
+    }
 
     // ------------------------------------------------------------------
     // Extract the survey code from the ?code= URL parameter
@@ -251,6 +261,10 @@
         await poll();
     }
 
-    // Launch
-    start(getCodeFromUrl());
+    // Launch — only if the URL matches the Dunkin survey code pattern
+    if (isTargetUrl()) {
+        start(getCodeFromUrl());
+    } else {
+        console.log('[DunkinAutoFill] URL does not match the Dunkin survey code pattern. Script not running.');
+    }
 })();
