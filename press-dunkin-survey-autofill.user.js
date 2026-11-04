@@ -1,11 +1,13 @@
 // ==UserScript==
-// @name         Dunkin' Survey: Auto-Fill Code via Keypresses
+// @name         Dunkin' Survey: Auto-Fill Code via Keypresses v2
 // @namespace    http://tampermonkey.net/
 // @version      2.0.0
-// @description  Reads the ?code= parameter from the URL, clicks the survey code container, then simulates pressing each number key individually into the input field. Works on iOS Safari with Tampermonkey or Stay.
+// @description  Reads the ?code= parameter from the URL, clicks the survey code container, types the code key-by-key, then clicks the Begin Survey button. Works on iOS Safari with Tampermonkey or Stay.
 // @author       Agent
 // @match        https://dunkinrunsonyou.com/*
 // @match        https://survey3.medallia.com/*
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/press-dunkin-survey-autofill.user.js
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/press-dunkin-survey-autofill.user.js
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
@@ -17,9 +19,11 @@
     const CONTAINER_CLASS_1 = 'textField_textfieldContainer';
     const CONTAINER_CLASS_2 = 'layout_answer';
     const INPUT_ID = 'spl_q_inrest_rcpt_code_txt';
-    const KEY_DELAY_MS = 100;    // delay between simulated keystrokes
-    const MAX_WAIT_MS = 60000;   // stop polling after 60 seconds
-    const POLL_MS = 300;         // check every 300 ms
+    const BEGIN_BUTTON_ID = 'buttonBegin';
+    const KEY_DELAY_MS = 100;        // delay between simulated keystrokes
+    const POST_TYPE_DELAY_MS = 250;  // wait after typing before clicking Begin
+    const MAX_WAIT_MS = 60000;       // stop polling after 60 seconds
+    const POLL_MS = 300;             // check every 300 ms
 
     // ------------------------------------------------------------------
     // Extract the survey code from the ?code= URL parameter
@@ -63,7 +67,14 @@
     }
 
     // ------------------------------------------------------------------
-    // Sleep helper for pacing keystrokes
+    // Find the Begin Survey button.
+    // ------------------------------------------------------------------
+    function findBeginButton() {
+        return document.getElementById(BEGIN_BUTTON_ID);
+    }
+
+    // ------------------------------------------------------------------
+    // Sleep helper for pacing keystrokes and delays
     // ------------------------------------------------------------------
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -153,7 +164,31 @@
     }
 
     // ------------------------------------------------------------------
-    // Try to fill the code by typing keys. Returns true if successful.
+    // Click the Begin Survey button.
+    // On iOS, a plain .click() can be unreliable, so we also dispatch
+    // mouse events manually as a fallback.
+    // ------------------------------------------------------------------
+    function clickBeginButton(button) {
+        if (!button) return;
+
+        button.click();
+
+        setTimeout(function() {
+            button.dispatchEvent(new MouseEvent('mousedown', {
+                bubbles: true, cancelable: true, view: window
+            }));
+            button.dispatchEvent(new MouseEvent('mouseup', {
+                bubbles: true, cancelable: true, view: window
+            }));
+            button.dispatchEvent(new MouseEvent('click', {
+                bubbles: true, cancelable: true, view: window
+            }));
+        }, 50);
+    }
+
+    // ------------------------------------------------------------------
+    // Try to fill the code by typing keys, then click Begin Survey.
+    // Returns true if successful.
     // ------------------------------------------------------------------
     async function tryFill(code) {
         const container = findContainer();
@@ -171,6 +206,18 @@
 
         // Type the code character by character
         await typeCodeCharacterByCharacter(input, code);
+
+        // Brief pause to let the survey engine register the final value
+        await sleep(POST_TYPE_DELAY_MS);
+
+        // Click the Begin Survey button to submit the page
+        const beginButton = findBeginButton();
+        if (beginButton) {
+            clickBeginButton(beginButton);
+            console.log('[DunkinAutoFill] Begin Survey button clicked.');
+        } else {
+            console.warn('[DunkinAutoFill] Begin Survey button not found after typing code.');
+        }
 
         return true;
     }
