@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Dunkin' Survey: Auto-Fill Code via Keypresses
-// @namespace    http://tampermonkey.net/
-// @version      2.0.0
+// @namespace    https://github.com/BlackSkuII/Userscripts-JSON-
+// @version      2.0
 // @description  Reads the ?code= parameter from the URL, clicks the survey code container, types the code key-by-key, then clicks the Begin Survey button. Works on iOS Safari with Tampermonkey or Stay.
-// @author       Agent
+// @author       Me + Agent
 // @match        https://dunkinrunsonyou.com/*
 // @match        https://survey3.medallia.com/*
 // @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/press-dunkin-survey-autofill.user.js
