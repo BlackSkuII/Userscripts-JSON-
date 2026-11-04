@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Dunkin' Survey: Auto-Fill Code via Keypresses v2
+// @name         Dunkin' Survey: Auto-Fill Code via Keypresses
 // @namespace    http://tampermonkey.net/
 // @version      2.0.0
 // @description  Reads the ?code= parameter from the URL, clicks the survey code container, types the code key-by-key, then clicks the Begin Survey button. Works on iOS Safari with Tampermonkey or Stay.
@@ -20,7 +20,7 @@
     const CONTAINER_CLASS_2 = 'layout_answer';
     const INPUT_ID = 'spl_q_inrest_rcpt_code_txt';
     const BEGIN_BUTTON_ID = 'buttonBegin';
-    const KEY_DELAY_MS = 100;        // delay between simulated keystrokes
+    const KEY_DELAY_MS = 10;        // delay between simulated keystrokes
     const POST_TYPE_DELAY_MS = 250;  // wait after typing before clicking Begin
     const MAX_WAIT_MS = 60000;       // stop polling after 60 seconds
     const POLL_MS = 300;             // check every 300 ms
