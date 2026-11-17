@@ -15,9 +15,9 @@
 // @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
 // @grant        unsafeWindow
-// @run-at       document-start
 // @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/YouTube-OneSuite.user.js
 // @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/YouTube-OneSuite.user.js
+// @run-at       document-start
 // @noframes
 // ==/UserScript==
 
