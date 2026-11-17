@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         YouTube OneSuite
-// @namespace    local.youtube-onesuite
+// @namespace    https://github.com/BlackSkuII
 // @version      1.0.2
 // @description  Six scripts in one: ad skipping + network ad blocking, Premium-style player features, interruption-toast removal, watch-page sidebar/thumbnail sizing, channels open to the Videos tab, and the original video-metadata layout.
 // @author       Merged by Arena.ai. Original authors: Aron (YT Ads Skipper), Mysticatten (YT Premium Client Side), BawdyInkSlinger (channels -> Videos), SpoopyTim (metadata layout).
