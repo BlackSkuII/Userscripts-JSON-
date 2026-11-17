@@ -16,8 +16,8 @@
 // @grant        GM_registerMenuCommand
 // @grant        unsafeWindow
 // @run-at       document-start
-// @downloadURL  
-// @updateURL    
+// @downloadURL  https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/YouTube-OneSuite.user.js
+// @updateURL    https://github.com/BlackSkuII/Userscripts-JSON-/raw/refs/heads/main/YouTube-OneSuite.user.js
 // @noframes
 // ==/UserScript==
 
