@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube OneSuite
 // @namespace    https://github.com/BlackSkuII
-// @version      1.0.2
+// @version      1.1.0
 // @description  Six scripts in one: ad skipping + network ad blocking, Premium-style player features, interruption-toast removal, watch-page sidebar/thumbnail sizing, channels open to the Videos tab, and the original video-metadata layout.
 // @author       Merged by Arena.ai. Original authors: Aron (YT Ads Skipper), Mysticatten (YT Premium Client Side), BawdyInkSlinger (channels -> Videos), SpoopyTim (metadata layout).
 // @license      MIT
@@ -45,7 +45,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '1.0.2';
+  const VERSION = '1.1.0';
   const CONFIG_KEY = 'ytOneSuite.config.v1';
   const LOG_PREFIX = '[OneSuite]';
 
@@ -316,15 +316,16 @@
 
   const isAdUrl = (url) => typeof url === 'string' && AD_URL_PATTERNS.some((p) => p.test(url));
 
+  // Engine A of the Premium ad blocker: request-level blocking.
+  // The originals are kept so the engine can be switched off at runtime
+  // without a page reload.
+  let netShield = null;
+
   function installNetShield() {
     const w = pageWindow;
-    if (w.__ytOneSuiteNetShield) return;
-    try {
-      Object.defineProperty(w, '__ytOneSuiteNetShield', { value: true, configurable: true });
-    } catch (e) {
-      // Page already provides it; do not double-patch.
-      if (w.__ytOneSuiteNetShield) return;
-    }
+    if (netShield) return;
+
+    const saved = { fetch: null, open: null, send: null };
 
     // --- patch fetch -------------------------------------------------------
     try {
@@ -350,6 +351,7 @@
           return originalFetch.apply(this, arguments);
         };
         patched.__osPatched = true;
+        saved.fetch = originalFetch;
         w.fetch = patched;
       }
     } catch (e) { warn('fetch patch failed', e); }
@@ -367,6 +369,8 @@
         const originalOpen = proto.open;
         const originalSend = proto.send;
         const EventCtor = w.Event || Event;
+        saved.open = originalOpen;
+        saved.send = originalSend;
 
         const patchedOpen = function (method, url) {
           this.__osBlocked = isAdUrl(url);
@@ -398,8 +402,65 @@
       }
     } catch (e) { warn('xhr patch failed', e); }
 
+    netShield = saved;
     log('net shield installed');
   }
+
+  function uninstallNetShield() {
+    if (!netShield) return;
+    const w = pageWindow;
+    try {
+      if (netShield.fetch && w.fetch && w.fetch.__osPatched) w.fetch = netShield.fetch;
+    } catch (e) { /* ignore */ }
+    try {
+      const proto = w.XMLHttpRequest && w.XMLHttpRequest.prototype;
+      if (proto) {
+        if (netShield.open && proto.open && proto.open.__osPatched) proto.open = netShield.open;
+        if (netShield.send) proto.send = netShield.send;
+      }
+    } catch (e) { /* ignore */ }
+    netShield = null;
+    log('net shield removed');
+  }
+
+  /* ======================================================================
+     §5b  SHARED AD MUTE
+     ----------------------------------------------------------------------
+     Both engines mute the player while an ad is on screen. A two-counter
+     "who muted it" scheme means either engine can be switched off (or both
+     can run together) without one of them un-muting over the other. The
+     user's own mute state is restored when the last holder releases.
+     ====================================================================== */
+
+  const adMute = {
+    holders: new Set(),
+    previous: null,
+
+    begin(holder) {
+      const v = video();
+      if (this.holders.size === 0) this.previous = v ? v.muted : null;
+      this.holders.add(holder);
+      if (v) v.muted = true;
+    },
+
+    end(holder) {
+      if (!this.holders.has(holder)) return;
+      this.holders.delete(holder);
+      if (this.holders.size === 0) {
+        const v = video();
+        if (v) v.muted = this.previous === null ? false : this.previous;
+        this.previous = null;
+      }
+    },
+
+    releaseAll() {
+      if (this.holders.size === 0) return;
+      this.holders.clear();
+      const v = video();
+      if (v) v.muted = this.previous === null ? false : this.previous;
+      this.previous = null;
+    },
+  };
 
   /* ======================================================================
      §6  AD SWEEPER  --  DOM-level ad removal + skip-button clicking
@@ -426,8 +487,6 @@
   let sweepQueued = false;
 
   function sweepAds() {
-    if (!CFG.blockAds) return;
-
     for (const sel of AD_ELEMENT_SELECTORS) {
       const nodes = document.querySelectorAll(sel);
       for (const el of nodes) el.remove();
@@ -435,13 +494,24 @@
 
     const skipBtn = document.querySelector('.ytp-ad-skip-button, .ytp-skip-ad-button, .ytp-ad-skip-button-modern');
     if (skipBtn) skipBtn.click();
+
+    // Premium's own in-player handling (kept as in the original): mute and
+    // jump to the end of the ad while `.ad-showing` is present.
+    const v = video();
+    if (document.querySelector('.ad-showing') && v) {
+      adMute.begin('premium');
+      if (isFinite(v.duration) && v.duration > 0) v.currentTime = v.duration;
+    } else {
+      adMute.end('premium');
+    }
   }
 
   function scheduleSweep() {
-    if (sweepQueued) return;
+    if (sweepQueued || !adObserver) return;
     sweepQueued = true;
     requestAnimationFrame(() => {
       sweepQueued = false;
+      if (!adObserver) return;
       try { sweepAds(); } catch (e) { log('sweep failed', e); }
     });
   }
@@ -449,10 +519,20 @@
   let adObserver = null;
 
   function startAdSweeper() {
-    if (!CFG.blockAds || adObserver) return;
+    if (adObserver) return;
     adObserver = new MutationObserver(scheduleSweep);
     adObserver.observe(document.body, { childList: true, subtree: true });
     sweepAds();
+    log('premium ad engine on');
+  }
+
+  function stopAdSweeper() {
+    if (adObserver) {
+      adObserver.disconnect();
+      adObserver = null;
+    }
+    adMute.end('premium');
+    log('premium ad engine off');
   }
 
   /* ======================================================================
@@ -461,7 +541,6 @@
      ====================================================================== */
 
   let adActive = false;          // ad pod currently on screen
-  let muteBeforeAd = null;       // restore the user's mute state afterwards
   let adTickTimer = null;
   let watchTimerId = null;
 
@@ -475,10 +554,7 @@
     if (!showing) {
       if (adActive) {
         adActive = false;
-        if (muteBeforeAd !== null) {
-          v.muted = muteBeforeAd;
-          muteBeforeAd = null;
-        }
+        adMute.end('skipper');
       }
       return;
     }
@@ -487,12 +563,11 @@
     // which inflated "Ads Skipped" by ~10x per ad.)
     if (!adActive) {
       adActive = true;
-      muteBeforeAd = v.muted;
       CFG.stats.ads++;
       render();
     }
 
-    v.muted = true;
+    adMute.begin('skipper');
     if (isFinite(v.duration) && v.duration > 0) {
       v.currentTime = v.duration;
     } else {
@@ -505,6 +580,17 @@
   function startAdSkipper() {
     if (adTickTimer) return;
     adTickTimer = setInterval(adTick, 700);
+    log('ads skipper engine on');
+  }
+
+  function stopAdSkipper() {
+    if (adTickTimer) {
+      clearInterval(adTickTimer);
+      adTickTimer = null;
+    }
+    adActive = false;
+    adMute.end('skipper');
+    log('ads skipper engine off');
   }
 
   function startWatchTimer() {
@@ -1209,6 +1295,7 @@
     };
 
     addRow('Ad Skipper: ', 's-enabled');
+    addRow('Premium block: ', 's-premium');
     addRow('Ads Skipped: ', 's-ads');
     addRow('Sponsor Skips: ', 's-sp');
     addRow('Watch Time: ', 's-wt', 's');
@@ -1236,6 +1323,7 @@
       if (el) el.textContent = text;
     };
     set('s-enabled', CFG.skipperEnabled ? 'ON' : 'OFF');
+    set('s-premium', CFG.blockAds ? 'ON' : 'OFF');
     set('s-ads', CFG.stats.ads);
     set('s-sp', CFG.stats.sponsors);
     set('s-wt', CFG.stats.watch);
@@ -1409,10 +1497,12 @@
 
   // type: 'toggle' | 'select'
   const CONTROLS = [
-    { section: 'Ads', key: 'blockAds', label: 'Block ads', desc: 'Removes video, feed and banner ads (reload to fully disable)' },
-    { section: 'Ads', key: 'skipperEnabled', label: 'Ad skipper', desc: 'Mute + fast-forward ads, click skip' },
-    { section: 'Ads', key: 'hideUpsells', label: 'Hide upsells', desc: 'Premium promo banners and dialogs' },
-    { section: 'Ads', key: 'skipSponsors', label: 'Skip sponsor chapters', desc: 'Jumps labelled sponsor segments' },
+    // The two ad blockers are deliberately independent: they work in different
+    // places (request/DOM vs. player polling) and can be used alone or together.
+    { section: 'Ad blocking', key: 'skipperEnabled', label: 'YT Ads Skipper', desc: 'Polls the player every 700 ms: mute, jump to the end, click skip. Drives the HUD counters.' },
+    { section: 'Ad blocking', key: 'blockAds', label: 'YT Premium — ad blocking', desc: 'Blocks ad requests (fetch/XHR) and deletes ad units from the page. Toggles live, no reload.' },
+    { section: 'Ad blocking', key: 'hideUpsells', label: 'YT Premium — hide upsells', desc: 'Premium promo banners and dialogs' },
+    { section: 'Ad blocking', key: 'skipSponsors', label: 'YT Premium — sponsor chapters', desc: 'Jumps labelled sponsor segments' },
     { section: 'Player', key: 'autoMaxQuality', label: 'Max quality', desc: 'Always pick the highest available' },
     { section: 'Player', key: 'persistVolume', label: 'Persist volume', desc: 'Remember volume + mute across videos' },
     { section: 'Player', key: 'autoSkipEndscreen', label: 'Skip end screen', desc: 'Skip the last 20 seconds' },
@@ -1435,15 +1525,26 @@
     switch (key) {
       case 'sidebarTweak': applyLayout(); break;
       case 'metadataFix': metadata.apply(); break;
-      case 'blockAds':
-        if (CFG.blockAds) { installNetShield(); startAdSweeper(); }
-        else warn('disabling ad blocking fully requires a page reload');
+      case 'blockAds':           // engine B: YT Premium (requests + DOM)
+        if (CFG.blockAds) {
+          safe('network shield', installNetShield);
+          safe('ad sweeper', startAdSweeper);
+        } else {
+          safe('ad sweeper', stopAdSweeper);
+          safe('network shield', uninstallNetShield);
+          // sweep once more so nothing is left half-removed
+          safe('ad sweeper', () => { adMute.releaseAll(); });
+        }
+        break;
+      case 'skipperEnabled':     // engine A: YT Ads Skipper (player polling)
+        if (CFG.skipperEnabled) safe('ad skipper', startAdSkipper);
+        else safe('ad skipper', stopAdSkipper);
+        render();
         break;
       case 'removeToasts':
         if (CFG.removeToasts) startToastNuker(); else stopToastNuker();
         break;
       case 'hudVisible':
-      case 'skipperEnabled':
         render();
         break;
       case 'hideUpsells':
@@ -1557,6 +1658,9 @@
       applyLayout();
       metadata.apply();
       applyControl('hideUpsells');
+      applyControl('removeToasts');
+      applyControl('blockAds');
+      applyControl('skipperEnabled');
       render();
     };
 
@@ -1754,7 +1858,7 @@
 
     safe('navigation hook', bindNavigation);
 
-    // must be installed before any network activity
+    // Engine B (YT Premium) part 1: must be installed before any network activity
     if (CFG.blockAds) safe('network shield', installNetShield);
 
     if (CFG.hideUpsells) safe('upsell css', () => addStyle('upsell', UPSELL_CSS));
@@ -1774,12 +1878,12 @@
   }
 
   function stageTwo() {
-    // DOM-level ad removal
+    // Engine B (YT Premium) part 2: DOM-level ad removal
     if (CFG.blockAds) safe('ad sweeper', startAdSweeper);
 
-    // Ads Skipper: HUD + counters
+    // Engine A (YT Ads Skipper): HUD + counters + player polling
     safe('hud', buildHud);
-    safe('ad skipper', startAdSkipper);
+    if (CFG.skipperEnabled) safe('ad skipper', startAdSkipper);
     safe('watch timer', startWatchTimer);
 
     // Premium player features
@@ -1821,3 +1925,4 @@
     });
   } catch (e) { /* ignore */ }
 })();
+
