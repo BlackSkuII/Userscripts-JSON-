@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube OneSuite
 // @namespace    https://github.com/BlackSkuII
-// @version      1.1.0
+// @version      1.1.2
 // @description  Six scripts in one: ad skipping + network ad blocking, Premium-style player features, interruption-toast removal, watch-page sidebar/thumbnail sizing, channels open to the Videos tab, and the original video-metadata layout.
 // @author       BlackSkuII + Arena.ai
 // @license      MIT
@@ -45,7 +45,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '1.1.0';
+  const VERSION = '1.1.2';
   const CONFIG_KEY = 'ytOneSuite.config.v1';
   const LOG_PREFIX = '[OneSuite]';
 
@@ -856,48 +856,144 @@
 
   /* ======================================================================
      §13  INTERRUPTION TOAST REMOVAL
-     (file contained four variants; this keeps variant #1's behaviour as the
-      default and folds in the dialog/text matching from #2-#3)
+     (file contained four variants: #1-#3 remove matching toasts/dialogs,
+      #4 hides tp-yt-paper-toast via CSS so it cannot flash before removal)
      ====================================================================== */
 
   const INTERRUPTION_TEXT = /experiencing interruptions|interruptions\?/i;
-  let toastQueued = false;
+  const TOAST_SELECTOR =
+    'tp-yt-paper-toast, snackbar-view-model, .ytSnackbarContainerSnackbarContainer, tp-yt-paper-dialog, ytd-mealbar-promo-renderer';
+
+  const TOAST_CSS = `
+    tp-yt-paper-toast,
+    .ytSnackbarContainerSnackbarContainer,
+    snackbar-view-model {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+  `;
+
+  function applyToastCss() {
+    if (CFG.removeToasts && CFG.toastMode === 'all') {
+      if (!styles.has('toast-css')) addStyle('toast-css', TOAST_CSS);
+    } else {
+      removeStyle('toast-css');
+    }
+  }
+
+  function hasToastElements() {
+    if (!document || typeof document.getElementsByTagName !== 'function') return false;
+    return (
+      document.getElementsByTagName('tp-yt-paper-toast').length > 0 ||
+      document.getElementsByTagName('snackbar-view-model').length > 0 ||
+      document.getElementsByClassName('ytSnackbarContainerOpened').length > 0 ||
+      document.getElementsByTagName('tp-yt-paper-dialog').length > 0 ||
+      document.getElementsByTagName('ytd-mealbar-promo-renderer').length > 0
+    );
+  }
 
   function nukeToasts() {
-    if (!CFG.removeToasts) return;
+    if (!CFG.removeToasts || !document || typeof document.getElementsByTagName !== 'function') return;
 
-    const toasts = document.querySelectorAll('tp-yt-paper-toast');
-    for (const t of toasts) {
-      if (CFG.toastMode === 'all' || INTERRUPTION_TEXT.test(t.textContent || '')) t.remove();
+    const toasts = document.getElementsByTagName('tp-yt-paper-toast');
+    for (let i = toasts.length - 1; i >= 0; i--) {
+      const t = toasts[i];
+      if (CFG.toastMode === 'all' || INTERRUPTION_TEXT.test(t.textContent || '')) {
+        t.style.setProperty('display', 'none', 'important');
+        t.remove();
+      }
+    }
+
+    // Modern YouTube snackbar ("Experiencing interruptions?" now renders inside
+    // .ytSnackbarContainerSnackbarContainer > snackbar-view-model).
+    const snackbars = document.getElementsByTagName('snackbar-view-model');
+    for (let i = snackbars.length - 1; i >= 0; i--) {
+      const sb = snackbars[i];
+      if (CFG.toastMode === 'all' || INTERRUPTION_TEXT.test(sb.textContent || '')) {
+        const container = sb.closest && sb.closest('.ytSnackbarContainerSnackbarContainer');
+        if (container) {
+          container.style.setProperty('display', 'none', 'important');
+          container.remove();
+        } else {
+          sb.style.setProperty('display', 'none', 'important');
+          sb.remove();
+        }
+      }
+    }
+
+    const openedContainers = document.getElementsByClassName('ytSnackbarContainerOpened');
+    for (let i = openedContainers.length - 1; i >= 0; i--) {
+      const c = openedContainers[i];
+      if (CFG.toastMode === 'all' || INTERRUPTION_TEXT.test(c.textContent || '')) {
+        c.style.setProperty('display', 'none', 'important');
+        c.remove();
+      }
     }
 
     // The nag can also arrive as a dialog or an inline promo rather than a
     // toast. Deliberately NOT matching ytd-popup-container: that node hosts
     // every menu and dialog on the page, so removing it would take the UI with it.
-    for (const el of document.querySelectorAll('tp-yt-paper-dialog, ytd-mealbar-promo-renderer')) {
-      if (INTERRUPTION_TEXT.test(el.textContent || '')) el.remove();
+    for (const tag of ['tp-yt-paper-dialog', 'ytd-mealbar-promo-renderer']) {
+      const els = document.getElementsByTagName(tag);
+      for (let i = els.length - 1; i >= 0; i--) {
+        const el = els[i];
+        if (INTERRUPTION_TEXT.test(el.textContent || '')) {
+          el.style.setProperty('display', 'none', 'important');
+          el.remove();
+        }
+      }
     }
   }
 
-  function scheduleToastSweep() {
-    if (toastQueued) return;
-    toastQueued = true;
-    requestAnimationFrame(() => {
-      toastQueued = false;
-      try { nukeToasts(); } catch (e) { log('toast sweep failed', e); }
-    });
+  function onToastMutations(mutations) {
+    if (!CFG.removeToasts || !hasToastElements()) return;
+    for (const m of mutations) {
+      if (m.type === 'childList') {
+        for (const node of m.addedNodes) {
+          if (node.nodeType === 1) {
+            const tag = node.tagName;
+            if (tag === 'TP-YT-PAPER-TOAST' || tag === 'SNACKBAR-VIEW-MODEL' ||
+                tag === 'TP-YT-PAPER-DIALOG' || tag === 'YTD-MEALBAR-PROMO-RENDERER' ||
+                (node.classList && node.classList.contains('ytSnackbarContainerSnackbarContainer')) ||
+                (node.querySelector && node.querySelector(TOAST_SELECTOR))) {
+              try { nukeToasts(); } catch (e) { log('toast sweep failed', e); }
+              return;
+            }
+          }
+        }
+      }
+      const targetEl = m.target && (m.target.nodeType === 1 ? m.target : m.target.parentElement);
+      if (targetEl && targetEl.closest && targetEl.closest(TOAST_SELECTOR)) {
+        try { nukeToasts(); } catch (e) { log('toast sweep failed', e); }
+        return;
+      }
+    }
   }
 
   let toastObserver = null;
 
   function startToastNuker() {
+    applyToastCss();
+    nukeToasts();
     if (toastObserver) return;
-    toastObserver = new MutationObserver(scheduleToastSweep);
-    toastObserver.observe(document.documentElement, { childList: true, subtree: true });
+    // Synchronous microtask execution (no requestAnimationFrame delay) removes
+    // the toast before the browser paints, and attribute watching catches reused
+    // toasts/snackbars that toggle `opened` or `class` instead of re-inserting.
+    toastObserver = new MutationObserver(onToastMutations);
+    toastObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['opened', 'hidden', 'aria-hidden', 'class'],
+    });
   }
 
   function stopToastNuker() {
     if (toastObserver) { toastObserver.disconnect(); toastObserver = null; }
+    removeStyle('toast-css');
   }
 
   /* ======================================================================
@@ -1544,6 +1640,10 @@
       case 'removeToasts':
         if (CFG.removeToasts) startToastNuker(); else stopToastNuker();
         break;
+      case 'toastMode':
+        applyToastCss();
+        nukeToasts();
+        break;
       case 'hudVisible':
         render();
         break;
@@ -1659,6 +1759,7 @@
       metadata.apply();
       applyControl('hideUpsells');
       applyControl('removeToasts');
+      applyControl('toastMode');
       applyControl('blockAds');
       applyControl('skipperEnabled');
       render();
